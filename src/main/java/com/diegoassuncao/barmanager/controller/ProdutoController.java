@@ -30,4 +30,22 @@ public class ProdutoController {
         List<ProdutoResponseDTO> produtos = produtoService.listarTodos();
         return ResponseEntity.ok(produtos);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProdutoResponseDTO> buscarPorId(@PathVariable Long id){
+        ProdutoResponseDTO produtoResponseDTO = produtoService.buscarPorId(id);
+        return ResponseEntity.ok(produtoResponseDTO);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProdutoResponseDTO> atualizar(@PathVariable Long id, @Valid @RequestBody ProdutoRequestDTO produtoRequestDTO){
+        ProdutoResponseDTO produtoAtualizado = produtoService.atualizar(id, produtoRequestDTO);
+        return ResponseEntity.ok(produtoAtualizado);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarPorId(@PathVariable Long id){
+        produtoService.deletarPorId(id);
+        return ResponseEntity.noContent().build();
+    }
 }
