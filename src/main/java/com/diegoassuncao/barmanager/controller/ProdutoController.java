@@ -37,10 +37,24 @@ public class ProdutoController {
         return ResponseEntity.ok(produtoResponseDTO);
     }
 
+    @GetMapping("/nome/{nome}")
+    public ResponseEntity<ProdutoResponseDTO> buscarPorNome(@PathVariable String nome){
+        ProdutoResponseDTO produtoResponseDTO = produtoService.buscarPorNome(nome);
+        return ResponseEntity.ok(produtoResponseDTO);
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<ProdutoResponseDTO> atualizar(@PathVariable Long id, @Valid @RequestBody ProdutoRequestDTO produtoRequestDTO){
+    public ResponseEntity<ProdutoResponseDTO> atualizar(@PathVariable Long id, @Valid @RequestBody
+    ProdutoRequestDTO produtoRequestDTO){
         ProdutoResponseDTO produtoAtualizado = produtoService.atualizar(id, produtoRequestDTO);
         return ResponseEntity.ok(produtoAtualizado);
+    }
+
+    @PutMapping("/nome/{nome}")
+    public ResponseEntity<ProdutoResponseDTO> atualizarPorNome(@PathVariable String nome, @RequestBody @Valid
+    ProdutoRequestDTO produtoRequestDTO){
+        ProdutoResponseDTO produtoResponseDTO = produtoService.atualizarPorNome(nome, produtoRequestDTO);
+        return ResponseEntity.ok(produtoResponseDTO);
     }
 
     @DeleteMapping("/{id}")

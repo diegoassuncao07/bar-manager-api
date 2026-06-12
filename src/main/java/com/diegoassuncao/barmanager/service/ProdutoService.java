@@ -73,6 +73,22 @@ public class ProdutoService {
         );
     }
 
+    public ProdutoResponseDTO buscarPorNome(String nome){
+        Produto produto = produtoRepository.findByNomeIgnoreCase(nome)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o nome: " + nome));
+
+        return new ProdutoResponseDTO(
+                produto.getId(),
+                produto.getNome(),
+                produto.getDescricao(),
+                produto.getCategoria(),
+                produto.getPrecoVenda(),
+                produto.getQuantidade(),
+                produto.getAtivo()
+        );
+    }
+
+
     public ProdutoResponseDTO atualizar(Long id, ProdutoRequestDTO produtoRequestDTO){
         Produto produtoAtt = produtoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado pelo ID: " + id));
@@ -93,6 +109,29 @@ public class ProdutoService {
                 produtoAtt.getPrecoVenda(),
                 produtoAtt.getQuantidade(),
                 produtoAtt.getAtivo()
+        );
+    }
+
+    public ProdutoResponseDTO atualizarPorNome(String nome, ProdutoRequestDTO produtoRequestDTO){
+        Produto produto = produtoRepository.findByNomeIgnoreCase(nome)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrando pelo nome: " + nome));
+
+        produto.setNome(produtoRequestDTO.getNome());
+        produto.setDescricao(produtoRequestDTO.getDescricao());
+        produto.setCategoria(produtoRequestDTO.getCategoria());
+        produto.setPrecoCusto(produtoRequestDTO.getPrecoCusto());
+        produto.setPrecoVenda(produtoRequestDTO.getPrecoVenda());
+        produto.setQuantidade(produtoRequestDTO.getQuantidade());
+        produtoRepository.save(produto);
+
+        return new ProdutoResponseDTO(
+                produto.getId(),
+                produto.getNome(),
+                produto.getDescricao(),
+                produto.getCategoria(),
+                produto.getPrecoVenda(),
+                produto.getQuantidade(),
+                produto.getAtivo()
         );
     }
 
