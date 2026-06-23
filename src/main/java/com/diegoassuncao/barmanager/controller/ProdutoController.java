@@ -3,6 +3,7 @@ package com.diegoassuncao.barmanager.controller;
 
 import com.diegoassuncao.barmanager.dto.ProdutoRequestDTO;
 import com.diegoassuncao.barmanager.dto.ProdutoResponseDTO;
+import com.diegoassuncao.barmanager.dto.ProdutoUpdateRequestDTO;
 import com.diegoassuncao.barmanager.service.ProdutoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,16 +45,16 @@ public class ProdutoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProdutoResponseDTO> atualizar(@PathVariable Long id, @Valid @RequestBody
-    ProdutoRequestDTO produtoRequestDTO){
-        ProdutoResponseDTO produtoAtualizado = produtoService.atualizar(id, produtoRequestDTO);
+    public ResponseEntity<ProdutoResponseDTO> atualizar(@PathVariable Long id, @RequestBody
+    ProdutoUpdateRequestDTO produtoUpdateRequestDTO){
+        ProdutoResponseDTO produtoAtualizado = produtoService.atualizar(id, produtoUpdateRequestDTO);
         return ResponseEntity.ok(produtoAtualizado);
     }
 
     @PutMapping("/nome/{nome}")
-    public ResponseEntity<ProdutoResponseDTO> atualizarPorNome(@PathVariable String nome, @RequestBody @Valid
-    ProdutoRequestDTO produtoRequestDTO){
-        ProdutoResponseDTO produtoResponseDTO = produtoService.atualizarPorNome(nome, produtoRequestDTO);
+    public ResponseEntity<ProdutoResponseDTO> atualizarPorNome(@PathVariable String nome, @RequestBody
+    ProdutoUpdateRequestDTO produtoUpdateRequestDTO){
+        ProdutoResponseDTO produtoResponseDTO = produtoService.atualizarPorNome(nome, produtoUpdateRequestDTO);
         return ResponseEntity.ok(produtoResponseDTO);
     }
 
