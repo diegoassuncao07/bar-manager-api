@@ -2,6 +2,7 @@ package com.diegoassuncao.barmanager.service;
 
 import com.diegoassuncao.barmanager.dto.ProdutoRequestDTO;
 import com.diegoassuncao.barmanager.dto.ProdutoResponseDTO;
+import com.diegoassuncao.barmanager.dto.ProdutoUpdateRequestDTO;
 import com.diegoassuncao.barmanager.entity.Produto;
 import com.diegoassuncao.barmanager.exception.ResourceNotFoundException;
 import com.diegoassuncao.barmanager.repository.ProdutoRepository;
@@ -89,49 +90,49 @@ public class ProdutoService {
     }
 
 
-    public ProdutoResponseDTO atualizar(Long id, ProdutoRequestDTO produtoRequestDTO){
-        Produto produtoAtt = produtoRepository.findById(id)
+    public ProdutoResponseDTO atualizar(Long id, ProdutoUpdateRequestDTO produtoUpdateRequestDTO) {
+        Produto produtoEntity = produtoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado pelo ID: " + id));
 
-        produtoAtt.setNome(produtoRequestDTO.getNome());
-        produtoAtt.setDescricao(produtoRequestDTO.getDescricao());
-        produtoAtt.setCategoria(produtoRequestDTO.getCategoria());
-        produtoAtt.setPrecoCusto(produtoRequestDTO.getPrecoCusto());
-        produtoAtt.setPrecoVenda(produtoRequestDTO.getPrecoVenda());
-        produtoAtt.setQuantidade(produtoRequestDTO.getQuantidade());
-        produtoRepository.save(produtoAtt);
+        produtoEntity.setNome(produtoUpdateRequestDTO.getNome() != null ? produtoUpdateRequestDTO.getNome() : produtoEntity.getNome());
+        produtoEntity.setDescricao(produtoUpdateRequestDTO.getDescricao() != null ? produtoUpdateRequestDTO.getDescricao() : produtoEntity.getDescricao());
+        produtoEntity.setCategoria(produtoUpdateRequestDTO.getCategoria() != null ? produtoUpdateRequestDTO.getCategoria() : produtoEntity.getCategoria());
+        produtoEntity.setPrecoCusto(produtoUpdateRequestDTO.getPrecoCusto() != null ? produtoUpdateRequestDTO.getPrecoCusto() : produtoEntity.getPrecoCusto());
+        produtoEntity.setPrecoVenda(produtoUpdateRequestDTO.getPrecoVenda() != null ? produtoUpdateRequestDTO.getPrecoVenda() : produtoEntity.getPrecoVenda());
+        produtoEntity.setQuantidade(produtoUpdateRequestDTO.getQuantidade() != null ? produtoUpdateRequestDTO.getQuantidade() : produtoEntity.getQuantidade());
+        produtoRepository.save(produtoEntity);
 
         return new ProdutoResponseDTO(
-                produtoAtt.getId(),
-                produtoAtt.getNome(),
-                produtoAtt.getDescricao(),
-                produtoAtt.getCategoria(),
-                produtoAtt.getPrecoVenda(),
-                produtoAtt.getQuantidade(),
-                produtoAtt.getAtivo()
+                produtoEntity.getId(),
+                produtoEntity.getNome(),
+                produtoEntity.getDescricao(),
+                produtoEntity.getCategoria(),
+                produtoEntity.getPrecoVenda(),
+                produtoEntity.getQuantidade(),
+                produtoEntity.getAtivo()
         );
     }
 
-    public ProdutoResponseDTO atualizarPorNome(String nome, ProdutoRequestDTO produtoRequestDTO){
-        Produto produto = produtoRepository.findByNomeIgnoreCase(nome)
+    public ProdutoResponseDTO atualizarPorNome(String nome, ProdutoUpdateRequestDTO produtoUpdateRequestDTO){
+        Produto produtoEntity = produtoRepository.findByNomeIgnoreCase(nome)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrando pelo nome: " + nome));
 
-        produto.setNome(produtoRequestDTO.getNome());
-        produto.setDescricao(produtoRequestDTO.getDescricao());
-        produto.setCategoria(produtoRequestDTO.getCategoria());
-        produto.setPrecoCusto(produtoRequestDTO.getPrecoCusto());
-        produto.setPrecoVenda(produtoRequestDTO.getPrecoVenda());
-        produto.setQuantidade(produtoRequestDTO.getQuantidade());
-        produtoRepository.save(produto);
+        produtoEntity.setNome(produtoUpdateRequestDTO.getNome() != null ? produtoUpdateRequestDTO.getNome() : produtoEntity.getNome());
+        produtoEntity.setDescricao(produtoUpdateRequestDTO.getDescricao() != null ? produtoUpdateRequestDTO.getDescricao() : produtoEntity.getDescricao());
+        produtoEntity.setCategoria(produtoUpdateRequestDTO.getCategoria() != null ? produtoUpdateRequestDTO.getCategoria() : produtoEntity.getCategoria());
+        produtoEntity.setPrecoCusto(produtoUpdateRequestDTO.getPrecoCusto() != null ? produtoUpdateRequestDTO.getPrecoCusto() : produtoEntity.getPrecoCusto());
+        produtoEntity.setPrecoVenda(produtoUpdateRequestDTO.getPrecoVenda() != null ? produtoUpdateRequestDTO.getPrecoVenda() : produtoEntity.getPrecoVenda());
+        produtoEntity.setQuantidade(produtoUpdateRequestDTO.getQuantidade() != null ? produtoUpdateRequestDTO.getQuantidade() : produtoEntity.getQuantidade());
+        produtoRepository.save(produtoEntity);
 
         return new ProdutoResponseDTO(
-                produto.getId(),
-                produto.getNome(),
-                produto.getDescricao(),
-                produto.getCategoria(),
-                produto.getPrecoVenda(),
-                produto.getQuantidade(),
-                produto.getAtivo()
+                produtoEntity.getId(),
+                produtoEntity.getNome(),
+                produtoEntity.getDescricao(),
+                produtoEntity.getCategoria(),
+                produtoEntity.getPrecoVenda(),
+                produtoEntity.getQuantidade(),
+                produtoEntity.getAtivo()
         );
     }
 
