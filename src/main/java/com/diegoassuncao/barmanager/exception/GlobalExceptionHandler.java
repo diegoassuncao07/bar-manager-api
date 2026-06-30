@@ -38,4 +38,15 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
     }
+
+    @ExceptionHandler(NomeDuplicadoException.class)
+    public ResponseEntity<ErroResponseDTO> tratarNomeDuplicado(NomeDuplicadoException excecao){
+        ErroResponseDTO erroResponseDTO = new ErroResponseDTO(
+                HttpStatus.CONFLICT.value(),
+                excecao.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(erroResponseDTO);
+    }
 }

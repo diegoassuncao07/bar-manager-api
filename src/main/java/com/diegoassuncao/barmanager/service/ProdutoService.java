@@ -4,6 +4,7 @@ import com.diegoassuncao.barmanager.dto.ProdutoRequestDTO;
 import com.diegoassuncao.barmanager.dto.ProdutoResponseDTO;
 import com.diegoassuncao.barmanager.dto.ProdutoUpdateRequestDTO;
 import com.diegoassuncao.barmanager.entity.Produto;
+import com.diegoassuncao.barmanager.exception.NomeDuplicadoException;
 import com.diegoassuncao.barmanager.exception.ResourceNotFoundException;
 import com.diegoassuncao.barmanager.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +21,9 @@ public class ProdutoService {
     private final ProdutoRepository produtoRepository;
 
     public ProdutoResponseDTO criar(ProdutoRequestDTO produtoRequestDTO){
+
+        validarDisponibilidadeDoNome(null, produtoRequestDTO.getNome());
+
         Produto produto = Produto.builder()
                 .nome(produtoRequestDTO.getNome())
                 .descricao(produtoRequestDTO.getDescricao())
@@ -94,6 +99,8 @@ public class ProdutoService {
         Produto produtoEntity = produtoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado pelo ID: " + id));
 
+        validarDisponibilidadeDoNome(produtoEntity.getId(), produtoUpdateRequestDTO.getNome());
+
         produtoEntity.setNome(produtoUpdateRequestDTO.getNome() != null ? produtoUpdateRequestDTO.getNome() : produtoEntity.getNome());
         produtoEntity.setDescricao(produtoUpdateRequestDTO.getDescricao() != null ? produtoUpdateRequestDTO.getDescricao() : produtoEntity.getDescricao());
         produtoEntity.setCategoria(produtoUpdateRequestDTO.getCategoria() != null ? produtoUpdateRequestDTO.getCategoria() : produtoEntity.getCategoria());
@@ -115,7 +122,9 @@ public class ProdutoService {
 
     public ProdutoResponseDTO atualizarPorNome(String nome, ProdutoUpdateRequestDTO produtoUpdateRequestDTO){
         Produto produtoEntity = produtoRepository.findByNomeIgnoreCase(nome)
-                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrando pelo nome: " + nome));
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado pelo nome: " + nome));
+
+        validarDisponibilidadeDoNome(produtoEntity.getId(), produtoUpdateRequestDTO.getNome());
 
         produtoEntity.setNome(produtoUpdateRequestDTO.getNome() != null ? produtoUpdateRequestDTO.getNome() : produtoEntity.getNome());
         produtoEntity.setDescricao(produtoUpdateRequestDTO.getDescricao() != null ? produtoUpdateRequestDTO.getDescricao() : produtoEntity.getDescricao());
@@ -141,6 +150,19 @@ public class ProdutoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
         produto.setAtivo(false);
         produtoRepository.save(produto);
+    }
+
+    private void validarDisponibilidadeDoNome(Long idProdutoSendoEditado, String novoNomeSolicitado){
+        if(novoNomeSolicitado == null){
+            return;
+        }
+        Optional<Produto> produtoComMesmoNome = produtoRepository.findByNomeIgnoreCase(novoNomeSolicitado);
+        if(produtoComMesmoNome.isEmpty()){
+            return;
+        }
+        if(idProdutoSendoEditado == null || !produtoComMesmoNome.get().getId().equals(idProdutoSendoEditado)){
+            throw new NomeDuplicadoException("Erro de duplicidade: o nome " + novoNomeSolicitado + " já está em uso.");
+        }
     }
 
 }
