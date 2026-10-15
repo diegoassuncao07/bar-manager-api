@@ -1,8 +1,9 @@
 package com.diegoassuncao.barmanager.exception;
 
-import com.diegoassuncao.barmanager.dto.ErroResponseDTO;
+import com.diegoassuncao.barmanager.web.dto.ErroResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -48,5 +49,26 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(erroResponseDTO);
+    }
+
+    @ExceptionHandler(RegistroDuplicadoException.class)
+    public ResponseEntity<ErroResponseDTO> tratarRegistroDuplicado(RegistroDuplicadoException excecao){
+        ErroResponseDTO erroResponseDTO = new ErroResponseDTO(
+                HttpStatus.CONFLICT.value(),
+                excecao.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(erroResponseDTO);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErroResponseDTO> credencialInvalida(BadCredentialsException exception){
+        ErroResponseDTO erroResponseDTO = new ErroResponseDTO(
+                HttpStatus.UNAUTHORIZED.value(),
+                "Credenciais inválidas",
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(erroResponseDTO);
     }
 }

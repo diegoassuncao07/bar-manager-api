@@ -1,4 +1,4 @@
-package com.diegoassuncao.barmanager.dto;
+package com.diegoassuncao.barmanager.web.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
