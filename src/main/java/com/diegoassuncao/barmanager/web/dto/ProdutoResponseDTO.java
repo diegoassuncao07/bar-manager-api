@@ -1,4 +1,4 @@
-package com.diegoassuncao.barmanager.dto;
+package com.diegoassuncao.barmanager.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

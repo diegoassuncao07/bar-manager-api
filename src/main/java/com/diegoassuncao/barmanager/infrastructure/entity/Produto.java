@@ -1,4 +1,4 @@
-package com.diegoassuncao.barmanager.entity;
+package com.diegoassuncao.barmanager.infrastructure.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

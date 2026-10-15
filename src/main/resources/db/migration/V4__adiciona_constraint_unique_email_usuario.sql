@@ -1,0 +1,3 @@
+ALTER TABLE usuario ADD CONSTRAINT uk_usuario_email UNIQUE (email);
+ALTER TABLE usuario ALTER COLUMN nome SET NOT NULL;
+ALTER TABLE usuario ALTER COLUMN senha SET NOT NULL;

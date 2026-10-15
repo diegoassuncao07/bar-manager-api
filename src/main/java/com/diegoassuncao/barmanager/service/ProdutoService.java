@@ -1,12 +1,12 @@
 package com.diegoassuncao.barmanager.service;
 
-import com.diegoassuncao.barmanager.dto.ProdutoRequestDTO;
-import com.diegoassuncao.barmanager.dto.ProdutoResponseDTO;
-import com.diegoassuncao.barmanager.dto.ProdutoUpdateRequestDTO;
-import com.diegoassuncao.barmanager.entity.Produto;
+import com.diegoassuncao.barmanager.web.dto.ProdutoRequestDTO;
+import com.diegoassuncao.barmanager.web.dto.ProdutoResponseDTO;
+import com.diegoassuncao.barmanager.web.dto.ProdutoUpdateRequestDTO;
+import com.diegoassuncao.barmanager.infrastructure.entity.Produto;
 import com.diegoassuncao.barmanager.exception.NomeDuplicadoException;
 import com.diegoassuncao.barmanager.exception.ResourceNotFoundException;
-import com.diegoassuncao.barmanager.repository.ProdutoRepository;
+import com.diegoassuncao.barmanager.infrastructure.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

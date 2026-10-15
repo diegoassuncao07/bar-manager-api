@@ -1,9 +1,9 @@
-package com.diegoassuncao.barmanager.controller;
+package com.diegoassuncao.barmanager.web.controller;
 
 
-import com.diegoassuncao.barmanager.dto.ProdutoRequestDTO;
-import com.diegoassuncao.barmanager.dto.ProdutoResponseDTO;
-import com.diegoassuncao.barmanager.dto.ProdutoUpdateRequestDTO;
+import com.diegoassuncao.barmanager.web.dto.ProdutoRequestDTO;
+import com.diegoassuncao.barmanager.web.dto.ProdutoResponseDTO;
+import com.diegoassuncao.barmanager.web.dto.ProdutoUpdateRequestDTO;
 import com.diegoassuncao.barmanager.service.ProdutoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

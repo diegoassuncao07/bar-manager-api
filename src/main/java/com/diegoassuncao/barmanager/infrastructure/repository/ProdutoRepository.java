@@ -1,6 +1,6 @@
-package com.diegoassuncao.barmanager.repository;
+package com.diegoassuncao.barmanager.infrastructure.repository;
 
-import com.diegoassuncao.barmanager.entity.Produto;
+import com.diegoassuncao.barmanager.infrastructure.entity.Produto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
