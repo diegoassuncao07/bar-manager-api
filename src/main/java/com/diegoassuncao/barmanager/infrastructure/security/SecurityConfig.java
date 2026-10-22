@@ -3,6 +3,7 @@ package com.diegoassuncao.barmanager.infrastructure.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,22 +34,26 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/auth/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                        .requestMatchers(HttpMethod.GET, "/produtos/**").hasAnyRole("ADMIN", "CAIXA", "VENDEDOR")
+                        .requestMatchers(HttpMethod.POST, "/produtos/**").hasAnyRole("ADMIN", "CAIXA")
+                        .requestMatchers(HttpMethod.PUT, "/produtos/**").hasAnyRole("ADMIN", "CAIXA")
+                        .requestMatchers(HttpMethod.DELETE, "/produtos/**").hasRole("ADMIN")
+                        .anyRequest().denyAll()
                 )
 
                 // 3. Define a política de sessão como STATELESS (A MUDANÇA CRUCIAL)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 5. PLUGA os handlers de exceção
+                // 4. PLUGA os handlers de exceção
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(jwtAuthEntryPoint) // 401
                         .accessDeniedHandler(customAccessDeniedHandler) // 403
                 )
 
-                // 4. Define o "Gerente" (Provider)
+                // 5. Define o "Gerente" (Provider)
                 .authenticationProvider(authenticationProvider)
 
-                // 5. "Pluga" o nosso "Guardião" (JwtFilter) ANTES do filtro padrão
+                // 6. "Pluga" o nosso "Guardião" (JwtFilter) ANTES do filtro padrão
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
