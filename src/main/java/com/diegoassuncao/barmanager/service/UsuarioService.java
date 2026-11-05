@@ -4,13 +4,17 @@ import com.diegoassuncao.barmanager.exception.RegistroDuplicadoException;
 import com.diegoassuncao.barmanager.infrastructure.entity.Usuario;
 import com.diegoassuncao.barmanager.infrastructure.repository.UsuarioRepository;
 import com.diegoassuncao.barmanager.web.dto.CadastroUsuarioDTO;
+import com.diegoassuncao.barmanager.web.dto.UsuarioListagemDTO;
 import com.diegoassuncao.barmanager.web.dto.UsuarioResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 @Service
@@ -74,5 +78,31 @@ public class UsuarioService {
         );
 
     }
+
+    private String mascararDocumento(String documento) {
+        if (documento == null || documento.length() < 4) {
+            return "*******";
+        }
+        return "*******" + documento.substring(documento.length() - 4);
+    }
+
+    private UsuarioListagemDTO converterParaListagemDTO(Usuario usuario){
+        return new UsuarioListagemDTO(
+                usuario.getId(),
+                usuario.getNomeUsuario(),
+                usuario.getNomeCompleto(),
+                usuario.getEmail(),
+                mascararDocumento(usuario.getDocumento()),
+                usuario.getPerfil()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<UsuarioListagemDTO> listarUsuarios(){
+        return usuarioRepository.findAllByOrderByIdAsc().stream()
+                .map(this::converterParaListagemDTO)
+                .toList();
+    }
+
 
 }
