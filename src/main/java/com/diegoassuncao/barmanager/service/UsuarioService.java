@@ -1,6 +1,9 @@
 package com.diegoassuncao.barmanager.service;
 
+import com.diegoassuncao.barmanager.exception.OperacaoNaoPermitidaException;
 import com.diegoassuncao.barmanager.exception.RegistroDuplicadoException;
+import com.diegoassuncao.barmanager.exception.ResourceNotFoundException;
+import com.diegoassuncao.barmanager.infrastructure.entity.Role;
 import com.diegoassuncao.barmanager.infrastructure.entity.Usuario;
 import com.diegoassuncao.barmanager.infrastructure.repository.UsuarioRepository;
 import com.diegoassuncao.barmanager.web.dto.CadastroUsuarioDTO;
@@ -25,7 +28,7 @@ public class UsuarioService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public String gerarUsername(String nomeCompleto){
+    public String gerarUsername(String nomeCompleto) {
         String[] partes = nomeCompleto.split(" ");
         String primeiroNome = partes[0];
         String ultimoNome = partes[partes.length - 1];
@@ -43,19 +46,19 @@ public class UsuarioService {
         return nomeUsuario + diaFormatado;
     }
 
-    public void validarDadosUnicos(String email, String nomeUsuario, String documento){
-        if(usuarioRepository.existsByNomeUsuarioIgnoreCase(nomeUsuario)){
+    public void validarDadosUnicos(String email, String nomeUsuario, String documento) {
+        if (usuarioRepository.existsByNomeUsuarioIgnoreCase(nomeUsuario)) {
             throw new RegistroDuplicadoException("Este nome de usuário já existe");
         }
-        if(usuarioRepository.existsByEmailIgnoreCase(email)){
+        if (usuarioRepository.existsByEmailIgnoreCase(email)) {
             throw new RegistroDuplicadoException("Este email já existe");
         }
-        if(usuarioRepository.existsByDocumento(documento)){
+        if (usuarioRepository.existsByDocumento(documento)) {
             throw new RegistroDuplicadoException("Documento já cadastrado");
         }
     }
 
-    public UsuarioResponseDTO criarUsuario(CadastroUsuarioDTO cadastroUsuarioDTO){
+    public UsuarioResponseDTO criarUsuario(CadastroUsuarioDTO cadastroUsuarioDTO) {
         String usernameUsuario = gerarUsername(cadastroUsuarioDTO.getNomeCompleto());
         validarDadosUnicos(cadastroUsuarioDTO.getEmail(), usernameUsuario, cadastroUsuarioDTO.getDocumento());
 
@@ -86,7 +89,7 @@ public class UsuarioService {
         return "*******" + documento.substring(documento.length() - 4);
     }
 
-    private UsuarioListagemDTO converterParaListagemDTO(Usuario usuario){
+    private UsuarioListagemDTO converterParaListagemDTO(Usuario usuario) {
         return new UsuarioListagemDTO(
                 usuario.getId(),
                 usuario.getNomeUsuario(),
@@ -98,11 +101,38 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<UsuarioListagemDTO> listarUsuarios(){
-        return usuarioRepository.findAllByOrderByIdAsc().stream()
+    public List<UsuarioListagemDTO> listarUsuarios(boolean ativo) {
+        return usuarioRepository.findAllByAtivoOrderByIdAsc(ativo).stream()
                 .map(this::converterParaListagemDTO)
                 .toList();
     }
 
+    @Transactional
+    public void desativarUsuario(Long idUsuario, Long idUsuarioLogado) {
+        Usuario usuario = buscarUsuarioPorId(idUsuario);
+        if (usuario.getId().equals(idUsuarioLogado)) {
+            throw new OperacaoNaoPermitidaException("Você não pode desativar o próprio usuário");
+        }
+        if (!usuario.isAtivo()) {
+            return;
+        }
+        if (usuario.getPerfil() == Role.ADMIN
+                && usuarioRepository.countByPerfilAndAtivoTrue(Role.ADMIN) <= 1) {
+            throw new OperacaoNaoPermitidaException("Não é possível desativar o último ADMIN ativo");
+        }
+        usuario.setAtivo(false);
+        usuarioRepository.save(usuario);
+    }
 
+    @Transactional
+    public void reativarUsuario(Long idUsuario) {
+        Usuario usuario = buscarUsuarioPorId(idUsuario);
+        usuario.setAtivo(true);
+        usuarioRepository.save(usuario);
+    }
+
+    private Usuario buscarUsuarioPorId(Long idUsuario) {
+        return usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+    }
 }

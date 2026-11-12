@@ -32,7 +32,7 @@ public class SecurityConfig {
 
                 // 2. Define as regras de autorização
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/auth/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                        .requestMatchers("/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/error").permitAll()
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/produtos/**").hasAnyRole("ADMIN", "CAIXA", "VENDEDOR")
                         .requestMatchers(HttpMethod.POST, "/produtos/**").hasAnyRole("ADMIN", "CAIXA")
