@@ -1,5 +1,6 @@
 package com.diegoassuncao.barmanager.infrastructure.repository;
 
+import com.diegoassuncao.barmanager.infrastructure.entity.Role;
 import com.diegoassuncao.barmanager.infrastructure.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,8 +15,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByNomeUsuarioIgnoreCase(String nomeUsuario);
 
     boolean existsByNomeUsuarioIgnoreCase(String nomeUsuario);
-    boolean existsByEmailIgnoreCase(String email);
-    boolean existsByDocumento(String documento);
-    List<Usuario> findAllByOrderByIdAsc();
 
+    boolean existsByEmailIgnoreCase(String email);
+
+    boolean existsByDocumento(String documento);
+
+    List<Usuario> findAllByAtivoOrderByIdAsc(boolean ativo);
+
+    long countByPerfilAndAtivoTrue(Role perfil);
 }

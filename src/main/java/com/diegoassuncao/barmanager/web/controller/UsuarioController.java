@@ -1,5 +1,6 @@
 package com.diegoassuncao.barmanager.web.controller;
 
+import com.diegoassuncao.barmanager.infrastructure.entity.Usuario;
 import com.diegoassuncao.barmanager.service.UsuarioService;
 import com.diegoassuncao.barmanager.web.dto.CadastroUsuarioDTO;
 import com.diegoassuncao.barmanager.web.dto.UsuarioListagemDTO;
@@ -8,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,7 +28,20 @@ public class UsuarioController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UsuarioListagemDTO>> listarUsuarios(){
-        return ResponseEntity.ok(usuarioService.listarUsuarios());
+    public ResponseEntity<List<UsuarioListagemDTO>> listarUsuarios(@RequestParam(defaultValue = "true")
+                                                                       boolean ativo){
+        return ResponseEntity.ok(usuarioService.listarUsuarios(ativo));
+    }
+
+    @DeleteMapping("/{idUsuario}")
+    public ResponseEntity<Void> desativarUsuario(@PathVariable Long idUsuario, @AuthenticationPrincipal Usuario usuarioLogado){
+        usuarioService.desativarUsuario(idUsuario, usuarioLogado.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{idUsuario}/reativar")
+    public ResponseEntity<Void> reativarUsuario(@PathVariable Long idUsuario){
+        usuarioService.reativarUsuario(idUsuario);
+        return ResponseEntity.noContent().build();
     }
 }

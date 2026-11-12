@@ -42,6 +42,10 @@ public class Usuario implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role perfil;
 
+    @Builder.Default
+    @Column(name = "ativo", nullable = false)
+    private boolean ativo = true;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + perfil.name()));
@@ -74,6 +78,6 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return ativo;
     }
 }

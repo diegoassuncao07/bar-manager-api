@@ -1,5 +1,6 @@
 package com.diegoassuncao.barmanager.infrastructure.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -33,29 +35,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         final String jwt = authorizationHeader.substring(7);
-        final String username = jwtService.extractUsername(jwt);
 
-        // Se o usuário existe E ainda não está autenticado no "bolso" do Spring
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        try {
+            final String username = jwtService.extractUsername(jwt);
 
-            // 1. Usa o "Buscador" para pegar o usuário do banco
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+            // Se o usuário existe E ainda não está autenticado no "bolso" do Spring
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // 2. Se o token for válido
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+                // 1. Usa o "Buscador" para pegar o usuário do banco
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-                // 3. Cria o "crachá" (Authentication)
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities() // As PERMISSÕES (do User.java)
-                );
+                // 2. Se o token for válido
+                if (jwtService.isTokenValid(jwt, userDetails) && userDetails.isEnabled()) {
 
-                // 4. COLOCA o "crachá" no "bolso" (SecurityContext)
-                // O Spring agora sabe que este usuário está autenticado
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    // 3. Cria o "crachá" (Authentication)
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities() // As PERMISSÕES (do User.java)
+                    );
+
+                    // 4. COLOCA o "crachá" no "bolso" (SecurityContext)
+                    // O Spring agora sabe que este usuário está autenticado
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (JwtException | IllegalArgumentException | UsernameNotFoundException excecao) {
+            SecurityContextHolder.clearContext();
         }
+
         filterChain.doFilter(request, response); // Passa para o próximo filtro
 
     }
