@@ -1,5 +1,6 @@
 package com.diegoassuncao.barmanager.service;
 
+import com.diegoassuncao.barmanager.infrastructure.entity.Role;
 import com.diegoassuncao.barmanager.web.dto.ProdutoRequestDTO;
 import com.diegoassuncao.barmanager.web.dto.ProdutoResponseDTO;
 import com.diegoassuncao.barmanager.web.dto.ProdutoUpdateRequestDTO;
@@ -9,6 +10,7 @@ import com.diegoassuncao.barmanager.exception.ResourceNotFoundException;
 import com.diegoassuncao.barmanager.infrastructure.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +22,10 @@ import java.util.Optional;
 public class ProdutoService {
     private final ProdutoRepository produtoRepository;
 
-    public ProdutoResponseDTO criar(ProdutoRequestDTO produtoRequestDTO){
+    private static final String PRODUTO_NAO_ENCONTRADO = "Produto não encontrado";
+
+    @Transactional
+    public ProdutoResponseDTO criar(ProdutoRequestDTO produtoRequestDTO) {
 
         validarDisponibilidadeDoNome(null, produtoRequestDTO.getNome());
 
@@ -46,10 +51,12 @@ public class ProdutoService {
         );
     }
 
-    public List<ProdutoResponseDTO> listarTodos(){
-        List<Produto> produtosDoBanco = produtoRepository.findAll();
-        List <ProdutoResponseDTO> listaDeDtos = new ArrayList<>();
-        for(Produto produto : produtosDoBanco){
+    @Transactional(readOnly = true)
+    public List<ProdutoResponseDTO> listarTodos(boolean ativoSolicitado, Role perfilLogado) {
+        boolean ativoEfetivo = definirFiltroAtivo(ativoSolicitado, perfilLogado);
+        List<Produto> produtosDoBanco = produtoRepository.findAllByAtivoOrderByIdAsc(ativoEfetivo);
+        List<ProdutoResponseDTO> listaDeDtos = new ArrayList<>();
+        for (Produto produto : produtosDoBanco) {
             ProdutoResponseDTO dto = new ProdutoResponseDTO(
                     produto.getId(),
                     produto.getNome(),
@@ -64,9 +71,20 @@ public class ProdutoService {
         return listaDeDtos;
     }
 
-    public ProdutoResponseDTO buscarPorId(Long id){
+    private boolean definirFiltroAtivo(boolean ativoSolicitado, Role perfilLogado) {
+        return podeVerInativos(perfilLogado) ? ativoSolicitado : true;
+    }
+
+    private Produto buscarProdutoVisivelPorId(Long id, Role perfilLogado) {
         Produto produto = produtoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(PRODUTO_NAO_ENCONTRADO));
+        validarVisibilidade(produto, perfilLogado);
+        return produto;
+    }
+
+    @Transactional(readOnly = true)
+    public ProdutoResponseDTO buscarPorId(Long id, Role perfilLogado) {
+        Produto produto = buscarProdutoVisivelPorId(id, perfilLogado);
 
         return new ProdutoResponseDTO(
                 produto.getId(),
@@ -79,9 +97,16 @@ public class ProdutoService {
         );
     }
 
-    public ProdutoResponseDTO buscarPorNome(String nome){
+    private Produto buscarProdutoVisivelPorNome(String nome, Role perfilLogado) {
         Produto produto = produtoRepository.findByNomeIgnoreCase(nome)
-                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o nome: " + nome));
+                .orElseThrow(() -> new ResourceNotFoundException(PRODUTO_NAO_ENCONTRADO));
+        validarVisibilidade(produto, perfilLogado);
+        return produto;
+    }
+
+    @Transactional(readOnly = true)
+    public ProdutoResponseDTO buscarPorNome(String nome, Role perfilLogado) {
+        Produto produto = buscarProdutoVisivelPorNome(nome, perfilLogado);
 
         return new ProdutoResponseDTO(
                 produto.getId(),
@@ -94,35 +119,9 @@ public class ProdutoService {
         );
     }
 
-
-    public ProdutoResponseDTO atualizar(Long id, ProdutoUpdateRequestDTO produtoUpdateRequestDTO) {
-        Produto produtoEntity = produtoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado pelo ID: " + id));
-
-        validarDisponibilidadeDoNome(produtoEntity.getId(), produtoUpdateRequestDTO.getNome());
-
-        produtoEntity.setNome(produtoUpdateRequestDTO.getNome() != null ? produtoUpdateRequestDTO.getNome() : produtoEntity.getNome());
-        produtoEntity.setDescricao(produtoUpdateRequestDTO.getDescricao() != null ? produtoUpdateRequestDTO.getDescricao() : produtoEntity.getDescricao());
-        produtoEntity.setCategoria(produtoUpdateRequestDTO.getCategoria() != null ? produtoUpdateRequestDTO.getCategoria() : produtoEntity.getCategoria());
-        produtoEntity.setPrecoCusto(produtoUpdateRequestDTO.getPrecoCusto() != null ? produtoUpdateRequestDTO.getPrecoCusto() : produtoEntity.getPrecoCusto());
-        produtoEntity.setPrecoVenda(produtoUpdateRequestDTO.getPrecoVenda() != null ? produtoUpdateRequestDTO.getPrecoVenda() : produtoEntity.getPrecoVenda());
-        produtoEntity.setQuantidade(produtoUpdateRequestDTO.getQuantidade() != null ? produtoUpdateRequestDTO.getQuantidade() : produtoEntity.getQuantidade());
-        produtoRepository.save(produtoEntity);
-
-        return new ProdutoResponseDTO(
-                produtoEntity.getId(),
-                produtoEntity.getNome(),
-                produtoEntity.getDescricao(),
-                produtoEntity.getCategoria(),
-                produtoEntity.getPrecoVenda(),
-                produtoEntity.getQuantidade(),
-                produtoEntity.getAtivo()
-        );
-    }
-
-    public ProdutoResponseDTO atualizarPorNome(String nome, ProdutoUpdateRequestDTO produtoUpdateRequestDTO){
-        Produto produtoEntity = produtoRepository.findByNomeIgnoreCase(nome)
-                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado pelo nome: " + nome));
+    @Transactional
+    public ProdutoResponseDTO atualizar(Long id, ProdutoUpdateRequestDTO produtoUpdateRequestDTO, Role perfilLogado) {
+        Produto produtoEntity = buscarProdutoVisivelPorId(id, perfilLogado);
 
         validarDisponibilidadeDoNome(produtoEntity.getId(), produtoUpdateRequestDTO.getNome());
 
@@ -145,24 +144,59 @@ public class ProdutoService {
         );
     }
 
-    public void deletarPorId(Long id){
+    @Transactional
+    public ProdutoResponseDTO atualizarPorNome(String nome, ProdutoUpdateRequestDTO produtoUpdateRequestDTO, Role perfilLogado) {
+        Produto produtoEntity = buscarProdutoVisivelPorNome(nome, perfilLogado);
+
+        validarDisponibilidadeDoNome(produtoEntity.getId(), produtoUpdateRequestDTO.getNome());
+
+        produtoEntity.setNome(produtoUpdateRequestDTO.getNome() != null ? produtoUpdateRequestDTO.getNome() : produtoEntity.getNome());
+        produtoEntity.setDescricao(produtoUpdateRequestDTO.getDescricao() != null ? produtoUpdateRequestDTO.getDescricao() : produtoEntity.getDescricao());
+        produtoEntity.setCategoria(produtoUpdateRequestDTO.getCategoria() != null ? produtoUpdateRequestDTO.getCategoria() : produtoEntity.getCategoria());
+        produtoEntity.setPrecoCusto(produtoUpdateRequestDTO.getPrecoCusto() != null ? produtoUpdateRequestDTO.getPrecoCusto() : produtoEntity.getPrecoCusto());
+        produtoEntity.setPrecoVenda(produtoUpdateRequestDTO.getPrecoVenda() != null ? produtoUpdateRequestDTO.getPrecoVenda() : produtoEntity.getPrecoVenda());
+        produtoEntity.setQuantidade(produtoUpdateRequestDTO.getQuantidade() != null ? produtoUpdateRequestDTO.getQuantidade() : produtoEntity.getQuantidade());
+        produtoRepository.save(produtoEntity);
+
+        return new ProdutoResponseDTO(
+                produtoEntity.getId(),
+                produtoEntity.getNome(),
+                produtoEntity.getDescricao(),
+                produtoEntity.getCategoria(),
+                produtoEntity.getPrecoVenda(),
+                produtoEntity.getQuantidade(),
+                produtoEntity.getAtivo()
+        );
+    }
+
+    @Transactional
+    public void deletarPorId(Long id) {
         Produto produto = produtoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com o ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(PRODUTO_NAO_ENCONTRADO));
         produto.setAtivo(false);
         produtoRepository.save(produto);
     }
 
-    private void validarDisponibilidadeDoNome(Long idProdutoSendoEditado, String novoNomeSolicitado){
-        if(novoNomeSolicitado == null){
+    private void validarDisponibilidadeDoNome(Long idProdutoSendoEditado, String novoNomeSolicitado) {
+        if (novoNomeSolicitado == null) {
             return;
         }
         Optional<Produto> produtoComMesmoNome = produtoRepository.findByNomeIgnoreCase(novoNomeSolicitado);
-        if(produtoComMesmoNome.isEmpty()){
+        if (produtoComMesmoNome.isEmpty()) {
             return;
         }
-        if(idProdutoSendoEditado == null || !produtoComMesmoNome.get().getId().equals(idProdutoSendoEditado)){
+        if (idProdutoSendoEditado == null || !produtoComMesmoNome.get().getId().equals(idProdutoSendoEditado)) {
             throw new NomeDuplicadoException("Erro de duplicidade: o nome " + novoNomeSolicitado + " já está em uso.");
         }
     }
 
+    private boolean podeVerInativos(Role perfilLogado) {
+        return perfilLogado == Role.ADMIN;
+    }
+
+    private void validarVisibilidade(Produto produto, Role perfilLogado) {
+        if (!produto.getAtivo() && !podeVerInativos(perfilLogado)) {
+            throw new ResourceNotFoundException(PRODUTO_NAO_ENCONTRADO);
+        }
+    }
 }
