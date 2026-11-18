@@ -31,6 +31,7 @@ public class ProdutoRequestDTO {
     private BigDecimal precoVenda;
 
     @NotNull(message = "Quantidade é obrigatória")
+    @Positive(message = "Quantidade deve ser maior que zero")
     private Integer quantidade;
 
 }

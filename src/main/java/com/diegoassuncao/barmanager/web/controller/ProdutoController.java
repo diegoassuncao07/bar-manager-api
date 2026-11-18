@@ -1,6 +1,7 @@
 package com.diegoassuncao.barmanager.web.controller;
 
 
+import com.diegoassuncao.barmanager.infrastructure.entity.Usuario;
 import com.diegoassuncao.barmanager.web.dto.ProdutoRequestDTO;
 import com.diegoassuncao.barmanager.web.dto.ProdutoResponseDTO;
 import com.diegoassuncao.barmanager.web.dto.ProdutoUpdateRequestDTO;
@@ -9,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,34 +29,39 @@ public class ProdutoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProdutoResponseDTO>> listarTodos(){
-        List<ProdutoResponseDTO> produtos = produtoService.listarTodos();
+    public ResponseEntity<List<ProdutoResponseDTO>> listarTodos(@RequestParam(defaultValue = "true") boolean ativo,
+                                                                @AuthenticationPrincipal Usuario usuarioLogado){
+        List<ProdutoResponseDTO> produtos = produtoService.listarTodos(ativo, usuarioLogado.getPerfil());
         return ResponseEntity.ok(produtos);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProdutoResponseDTO> buscarPorId(@PathVariable Long id){
-        ProdutoResponseDTO produtoResponseDTO = produtoService.buscarPorId(id);
+    public ResponseEntity<ProdutoResponseDTO> buscarPorId(@PathVariable Long id,
+                                                          @AuthenticationPrincipal Usuario usuarioLogado){
+        ProdutoResponseDTO produtoResponseDTO = produtoService.buscarPorId(id, usuarioLogado.getPerfil());
         return ResponseEntity.ok(produtoResponseDTO);
     }
 
     @GetMapping("/nome/{nome}")
-    public ResponseEntity<ProdutoResponseDTO> buscarPorNome(@PathVariable String nome){
-        ProdutoResponseDTO produtoResponseDTO = produtoService.buscarPorNome(nome);
+    public ResponseEntity<ProdutoResponseDTO> buscarPorNome(@PathVariable String nome,
+                                                            @AuthenticationPrincipal Usuario usuarioLogado){
+        ProdutoResponseDTO produtoResponseDTO = produtoService.buscarPorNome(nome, usuarioLogado.getPerfil());
         return ResponseEntity.ok(produtoResponseDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProdutoResponseDTO> atualizar(@PathVariable Long id, @RequestBody
-    ProdutoUpdateRequestDTO produtoUpdateRequestDTO){
-        ProdutoResponseDTO produtoAtualizado = produtoService.atualizar(id, produtoUpdateRequestDTO);
+    public ResponseEntity<ProdutoResponseDTO> atualizar(@PathVariable Long id, @RequestBody @Valid
+    ProdutoUpdateRequestDTO produtoUpdateRequestDTO, @AuthenticationPrincipal Usuario usuarioLogado){
+        ProdutoResponseDTO produtoAtualizado = produtoService.atualizar(id, produtoUpdateRequestDTO,
+                usuarioLogado.getPerfil());
         return ResponseEntity.ok(produtoAtualizado);
     }
 
     @PutMapping("/nome/{nome}")
-    public ResponseEntity<ProdutoResponseDTO> atualizarPorNome(@PathVariable String nome, @RequestBody
-    ProdutoUpdateRequestDTO produtoUpdateRequestDTO){
-        ProdutoResponseDTO produtoResponseDTO = produtoService.atualizarPorNome(nome, produtoUpdateRequestDTO);
+    public ResponseEntity<ProdutoResponseDTO> atualizarPorNome(@PathVariable String nome, @RequestBody @Valid
+    ProdutoUpdateRequestDTO produtoUpdateRequestDTO, @AuthenticationPrincipal Usuario usuarioLogado){
+        ProdutoResponseDTO produtoResponseDTO = produtoService.atualizarPorNome(nome, produtoUpdateRequestDTO,
+                usuarioLogado.getPerfil());
         return ResponseEntity.ok(produtoResponseDTO);
     }
 
