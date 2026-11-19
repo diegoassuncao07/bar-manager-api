@@ -3,6 +3,9 @@ package com.diegoassuncao.barmanager.web.controller;
 import com.diegoassuncao.barmanager.service.AuthService;
 import com.diegoassuncao.barmanager.web.dto.LoginRequestDTO;
 import com.diegoassuncao.barmanager.web.dto.LoginResponseDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,10 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Tag(name = "Autenticação", description = "Login")
 
 public class AuthController {
+
     private final AuthService authService;
 
+    @SecurityRequirements
+    @Operation(summary = "Autentica e devolve o token JWT")
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginRequestDTO loginRequestDTO){
         LoginResponseDTO userLogado = authService.login(loginRequestDTO);
