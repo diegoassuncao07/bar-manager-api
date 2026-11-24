@@ -58,6 +58,7 @@ public class UsuarioService {
         }
     }
 
+    @Transactional
     public UsuarioResponseDTO criarUsuario(CadastroUsuarioDTO cadastroUsuarioDTO) {
         String usernameUsuario = gerarUsername(cadastroUsuarioDTO.getNomeCompleto());
         validarDadosUnicos(cadastroUsuarioDTO.getEmail(), usernameUsuario, cadastroUsuarioDTO.getDocumento());
