@@ -9,6 +9,7 @@ import com.diegoassuncao.barmanager.exception.NomeDuplicadoException;
 import com.diegoassuncao.barmanager.exception.ResourceNotFoundException;
 import com.diegoassuncao.barmanager.infrastructure.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +19,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-
+@Slf4j
 public class ProdutoService {
     private final ProdutoRepository produtoRepository;
 
@@ -40,6 +41,7 @@ public class ProdutoService {
                 .build();
 
         Produto salvo = produtoRepository.save(produto);
+        log.info("Produto criado. id={}", salvo.getId());
         return new ProdutoResponseDTO(
                 salvo.getId(),
                 salvo.getNome(),
@@ -132,7 +134,7 @@ public class ProdutoService {
         produtoEntity.setPrecoVenda(produtoUpdateRequestDTO.getPrecoVenda() != null ? produtoUpdateRequestDTO.getPrecoVenda() : produtoEntity.getPrecoVenda());
         produtoEntity.setQuantidade(produtoUpdateRequestDTO.getQuantidade() != null ? produtoUpdateRequestDTO.getQuantidade() : produtoEntity.getQuantidade());
         produtoRepository.save(produtoEntity);
-
+        log.info("Produto atualizado. id={}", produtoEntity.getId());
         return new ProdutoResponseDTO(
                 produtoEntity.getId(),
                 produtoEntity.getNome(),
@@ -157,7 +159,7 @@ public class ProdutoService {
         produtoEntity.setPrecoVenda(produtoUpdateRequestDTO.getPrecoVenda() != null ? produtoUpdateRequestDTO.getPrecoVenda() : produtoEntity.getPrecoVenda());
         produtoEntity.setQuantidade(produtoUpdateRequestDTO.getQuantidade() != null ? produtoUpdateRequestDTO.getQuantidade() : produtoEntity.getQuantidade());
         produtoRepository.save(produtoEntity);
-
+        log.info("Produto atualizado. id={}", produtoEntity.getId());
         return new ProdutoResponseDTO(
                 produtoEntity.getId(),
                 produtoEntity.getNome(),
@@ -175,6 +177,7 @@ public class ProdutoService {
                 .orElseThrow(() -> new ResourceNotFoundException(PRODUTO_NAO_ENCONTRADO));
         produto.setAtivo(false);
         produtoRepository.save(produto);
+        log.info("Produto desativado. id={}", produto.getId());
     }
 
     private void validarDisponibilidadeDoNome(Long idProdutoSendoEditado, String novoNomeSolicitado) {

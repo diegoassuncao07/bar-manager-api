@@ -1,6 +1,7 @@
 package com.diegoassuncao.barmanager.exception;
 
 import com.diegoassuncao.barmanager.web.dto.ErroResponseDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -16,17 +17,13 @@ import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
-
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErroResponseDTO> tratarResourceNotFound(ResourceNotFoundException excecao) {
-        ErroResponseDTO erro = new ErroResponseDTO(
-                HttpStatus.NOT_FOUND.value(),
-                excecao.getMessage(),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
+        log.warn("Erro de negócio: {}", excecao.getMessage());
+        return montarResposta(HttpStatus.NOT_FOUND, excecao.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -36,73 +33,55 @@ public class GlobalExceptionHandler {
                 .map(erro -> erro.getDefaultMessage())
                 .collect(Collectors.joining(", "));
 
-        ErroResponseDTO erro = new ErroResponseDTO(
-                HttpStatus.BAD_REQUEST.value(),
-                mensagens,
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+        log.warn("Validação falhou: {}", mensagens);
+        return montarResposta(HttpStatus.BAD_REQUEST, mensagens);
     }
 
     @ExceptionHandler(NomeDuplicadoException.class)
-    public ResponseEntity<ErroResponseDTO> tratarNomeDuplicado(NomeDuplicadoException excecao){
-        ErroResponseDTO erroResponseDTO = new ErroResponseDTO(
-                HttpStatus.CONFLICT.value(),
-                excecao.getMessage(),
-                LocalDateTime.now()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(erroResponseDTO);
+    public ResponseEntity<ErroResponseDTO> tratarNomeDuplicado(NomeDuplicadoException excecao) {
+        log.warn("Erro de negócio: {}", excecao.getMessage());
+        return montarResposta(HttpStatus.CONFLICT, excecao.getMessage());
     }
 
     @ExceptionHandler(RegistroDuplicadoException.class)
-    public ResponseEntity<ErroResponseDTO> tratarRegistroDuplicado(RegistroDuplicadoException excecao){
-        ErroResponseDTO erroResponseDTO = new ErroResponseDTO(
-                HttpStatus.CONFLICT.value(),
-                excecao.getMessage(),
-                LocalDateTime.now()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(erroResponseDTO);
+    public ResponseEntity<ErroResponseDTO> tratarRegistroDuplicado(RegistroDuplicadoException excecao) {
+        log.warn("Erro de negócio: {}", excecao.getMessage());
+        return montarResposta(HttpStatus.CONFLICT, excecao.getMessage());
     }
 
     @ExceptionHandler({BadCredentialsException.class, DisabledException.class})
-    public ResponseEntity<ErroResponseDTO> credencialInvalida(AuthenticationException exception){
-        ErroResponseDTO erroResponseDTO = new ErroResponseDTO(
-                HttpStatus.UNAUTHORIZED.value(),
-                "Credenciais inválidas",
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(erroResponseDTO);
+    public ResponseEntity<ErroResponseDTO> credencialInvalida(AuthenticationException excecao) {
+        log.warn("Falha de login: credenciais inválidas");
+        return montarResposta(HttpStatus.UNAUTHORIZED, "Credenciais inválidas");
     }
 
     @ExceptionHandler(OperacaoNaoPermitidaException.class)
-    public ResponseEntity<ErroResponseDTO> tratarOperacaoNaoPermitida(OperacaoNaoPermitidaException exception){
-        ErroResponseDTO erroResponseDTO = new ErroResponseDTO(
-                HttpStatus.CONFLICT.value(),
-                exception.getMessage(),
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(erroResponseDTO);
+    public ResponseEntity<ErroResponseDTO> tratarOperacaoNaoPermitida(OperacaoNaoPermitidaException excecao) {
+        log.warn("Operação não permitida: {}", excecao.getMessage());
+        return montarResposta(HttpStatus.CONFLICT, excecao.getMessage());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErroResponseDTO> tratarCorpoInvalido(HttpMessageNotReadableException excecao) {
-        ErroResponseDTO erroResponseDTO = new ErroResponseDTO(
-                HttpStatus.BAD_REQUEST.value(),
-                "Corpo da requisição inválido",
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erroResponseDTO);
+        log.warn("Corpo da requisição inválido");
+        return montarResposta(HttpStatus.BAD_REQUEST, "Corpo da requisição inválido");
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErroResponseDTO> tratarTipoParametroInvalido(MethodArgumentTypeMismatchException excecao) {
-        ErroResponseDTO erroResponseDTO = new ErroResponseDTO(
-                HttpStatus.BAD_REQUEST.value(),
-                "Valor inválido para o parâmetro '" + excecao.getName() + "'",
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erroResponseDTO);
+        log.warn("Parâmetro inválido: {}", excecao.getName());
+        return montarResposta(HttpStatus.BAD_REQUEST,
+                "Valor inválido para o parâmetro '" + excecao.getName() + "'");
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErroResponseDTO> tratarErroInesperado(Exception excecao) {
+        log.error("Erro inesperado", excecao);
+        return montarResposta(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno. Tente novamente mais tarde");
+    }
+
+    private ResponseEntity<ErroResponseDTO> montarResposta(HttpStatus status, String mensagem) {
+        ErroResponseDTO erro = new ErroResponseDTO(status.value(), mensagem, LocalDateTime.now());
+        return ResponseEntity.status(status).body(erro);
     }
 }

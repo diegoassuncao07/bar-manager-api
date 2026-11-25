@@ -10,6 +10,7 @@ import com.diegoassuncao.barmanager.web.dto.CadastroUsuarioDTO;
 import com.diegoassuncao.barmanager.web.dto.UsuarioListagemDTO;
 import com.diegoassuncao.barmanager.web.dto.UsuarioResponseDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,7 @@ import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
-
+@Slf4j
 public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
 
@@ -73,7 +74,7 @@ public class UsuarioService {
                 .build();
 
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
-
+        log.info("Usuário criado. id={}, perfil={}", usuarioSalvo.getId(), usuarioSalvo.getPerfil());
         return new UsuarioResponseDTO(
                 usuarioSalvo.getId(),
                 usuarioSalvo.getNomeUsuario(),
@@ -123,6 +124,7 @@ public class UsuarioService {
         }
         usuario.setAtivo(false);
         usuarioRepository.save(usuario);
+        log.info("Usuário desativado. id={}, porAdminId={}", idUsuario, idUsuarioLogado);
     }
 
     @Transactional
@@ -130,6 +132,7 @@ public class UsuarioService {
         Usuario usuario = buscarUsuarioPorId(idUsuario);
         usuario.setAtivo(true);
         usuarioRepository.save(usuario);
+        log.info("Usuário reativado. id={}", idUsuario);
     }
 
     private Usuario buscarUsuarioPorId(Long idUsuario) {
