@@ -4,6 +4,7 @@ import com.diegoassuncao.barmanager.infrastructure.security.JwtService;
 import com.diegoassuncao.barmanager.web.dto.LoginRequestDTO;
 import com.diegoassuncao.barmanager.web.dto.LoginResponseDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -27,7 +29,7 @@ public class AuthService {
         Usuario usuario = (Usuario) autenticacao.getPrincipal();
 
         String token = jwtService.gerarToken(usuario);
-
+        log.info("Login realizado. usuarioId={}", usuario.getId());
         return new LoginResponseDTO(
                 usuario.getNomeCompleto(),
                 usuario.getPerfil(),
