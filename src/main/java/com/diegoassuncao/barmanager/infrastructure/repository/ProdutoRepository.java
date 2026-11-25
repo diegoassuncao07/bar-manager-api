@@ -1,6 +1,8 @@
 package com.diegoassuncao.barmanager.infrastructure.repository;
 
 import com.diegoassuncao.barmanager.infrastructure.entity.Produto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,5 +16,5 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
     boolean existsByNomeIgnoreCase(String nome);
 
-    List<Produto> findAllByAtivoOrderByIdAsc(boolean ativo);
+    Page<Produto> findByAtivo(Boolean ativo, Pageable pageable);
 }
