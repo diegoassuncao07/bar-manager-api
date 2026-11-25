@@ -10,6 +10,8 @@ import com.diegoassuncao.barmanager.exception.ResourceNotFoundException;
 import com.diegoassuncao.barmanager.infrastructure.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,23 +56,23 @@ public class ProdutoService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProdutoResponseDTO> listarTodos(boolean ativoSolicitado, Role perfilLogado) {
-        boolean ativoEfetivo = definirFiltroAtivo(ativoSolicitado, perfilLogado);
-        List<Produto> produtosDoBanco = produtoRepository.findAllByAtivoOrderByIdAsc(ativoEfetivo);
-        List<ProdutoResponseDTO> listaDeDtos = new ArrayList<>();
-        for (Produto produto : produtosDoBanco) {
-            ProdutoResponseDTO dto = new ProdutoResponseDTO(
-                    produto.getId(),
-                    produto.getNome(),
-                    produto.getDescricao(),
-                    produto.getCategoria(),
-                    produto.getPrecoVenda(),
-                    produto.getQuantidade(),
-                    produto.getAtivo()
-            );
-            listaDeDtos.add(dto);
-        }
-        return listaDeDtos;
+    public Page<ProdutoResponseDTO> listarTodos(boolean ativoSolicitado, Role perfilLogado, Pageable pageable) {
+        boolean filtroAtivo = definirFiltroAtivo(ativoSolicitado, perfilLogado);
+        return produtoRepository.findByAtivo(filtroAtivo, pageable)
+                .map(this::converterParaDTO);
+    }
+
+
+    private ProdutoResponseDTO converterParaDTO(Produto produto) {
+        return new ProdutoResponseDTO(
+                produto.getId(),
+                produto.getNome(),
+                produto.getDescricao(),
+                produto.getCategoria(),
+                produto.getPrecoVenda(),
+                produto.getQuantidade(),
+                produto.getAtivo()
+        );
     }
 
     private boolean definirFiltroAtivo(boolean ativoSolicitado, Role perfilLogado) {
